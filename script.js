@@ -1,86 +1,59 @@
-@import url('https://fonts.googleapis.com/css?family=Big+Shoulders+Text:300,400,700&display=swap');
 
-body {
-    font-family: 'Big Shoulders Text', cursive;
-}
+let bookedSlots = [
+    { date: "2025-08-09", time: "19:00" },
+    { date: "2025-08-09", time: "20:00" }
+];
 
-.nav-flex-row {
-    display: flex;
-    justify-content: center;
-    position: absolute;
-    width: 100%;
-    padding: 0;
-    background: rgba(0, 0, 0, 0.5);
-}
 
-.nav-flex-row li {
-    list-style: none;
-    padding: 20px;
-}
+const specials = ["Grilled Salmon - $20", "Mushroom Risotto - $15", "Chocolate Lava Cake - $8"];
+document.getElementById("specialsList").innerHTML = specials.map(item => `<li>${item}</li>`).join("");
 
-.nav-flex-row li a {
-    color: white;
-    font-size: 1.2em;
-    text-transform: uppercase;
-}
 
-.section-intro {
-    height: 820px;
-    background-image: url(img/petr-sevcovic-qE1jxYXiwOA-unsplash.jpg);
-    background-size: cover;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
+document.getElementById("bookingForm").addEventListener("submit", function(e) {
+    e.preventDefault();
 
-.section-intro h1 {
-    color: white;
-    font-size: 4em;
-}
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+    const people = document.getElementById("people").value;
 
-.link-to-book {
-    color: white;
-    border: 2px solid white;
-    padding: 5px 15px;
-}
+  
+    const alreadyBooked = bookedSlots.some(slot => slot.date === date && slot.time === time);
+    const messageDiv = document.getElementById("bookingMessage");
+    const qrDiv = document.getElementById("qrCode");
 
-.link-to-book:hover {
-    background: white;
-    color: black;
-    text-decoration: none;
-}
+    if (alreadyBooked) {
+        messageDiv.style.color = "red";
+        messageDiv.textContent = "Sorry, no tables available at that time. Try another slot.";
+        qrDiv.innerHTML = "";
+        return;
+    }
 
-.about-section {
-    padding: 40px;
-    background: #f3f3f3;
-    text-align: center;
-}
+   
+    bookedSlots.push({ date, time });
+    messageDiv.style.color = "green";
+    messageDiv.textContent = `Thank you ${name}! Your table for ${people} is booked on ${date} at ${time}.`;
 
-.carousel-inner {
-    height: 700px;
-}
+    
+    qrDiv.innerHTML = "";
+    new QRCode(qrDiv, {
+        text: `Booking: ${name}, Phone: ${phone}, Date: ${date}, Time: ${time}, People: ${people}`,
+        width: 128,
+        height: 128
+    });
 
-.row-flex {
-    display: flex;
-    flex-wrap: wrap;
-}
+    
+    localStorage.setItem("lastBooking", JSON.stringify({ name, phone, date, time, people }));
+    this.reset();
+});
 
-.flex-column-form {
-    flex: 1;
-    padding: 20px;
-}
 
-.btn-primary {
-    background: #95999e;
-    border: none;
-}
-
-#bookingMessage {
-    margin-top: 15px;
-    font-weight: bold;
-}
-
-#qrCode {
-    margin-top: 20px;
-}
+window.addEventListener("load", () => {
+    const lastBooking = localStorage.getItem("lastBooking");
+    if (lastBooking) {
+        const b = JSON.parse(lastBooking);
+        document.getElementById("bookingMessage").style.color = "blue";
+        document.getElementById("bookingMessage").textContent = `Last booking: ${b.name}, ${b.people} people on ${b.date} at ${b.time}`;
+    }
+});
